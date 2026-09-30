@@ -9,7 +9,6 @@ export const couponBodySchema = z.object({
     maxDiscountAmount: z.coerce.number().positive().optional().nullable(),
     usageLimitTotal: z.coerce.number().int().positive().optional().nullable(),
     usageLimitPerCustomer: z.coerce.number().int().positive().optional().nullable(),
-    categoryId: z.coerce.number().int().positive().optional().nullable(),
     isActive: z.coerce.boolean().optional(),
     startsAt: z.string().trim().optional().nullable(),
     expiresAt: z.string().trim().optional().nullable(),

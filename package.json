@@ -1,8 +1,8 @@
 {
-  "name": "abdullah-kneaders-backend",
+  "name": "graino-backend",
   "version": "1.0.0",
   "private": true,
-  "description": "Backend API for Abdullah Kneaders e-commerce platform",
+  "description": "Backend API for the Graino Dough Maker e-commerce platform",
   "type": "module",
   "main": "src/server.js",
   "scripts": {

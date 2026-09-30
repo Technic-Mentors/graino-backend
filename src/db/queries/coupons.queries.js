@@ -29,8 +29,8 @@ export async function findCouponByCodeForUpdate(connection, code) {
 export async function createCoupon(data) {
   const [result] = await pool.query(
     `INSERT INTO coupons
-       (code, type, value, min_order_value, max_discount_amount, usage_limit_total, usage_limit_per_customer, category_id, is_active, starts_at, expires_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       (code, type, value, min_order_value, max_discount_amount, usage_limit_total, usage_limit_per_customer, is_active, starts_at, expires_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       data.code,
       data.type,
@@ -39,7 +39,6 @@ export async function createCoupon(data) {
       data.maxDiscountAmount || null,
       data.usageLimitTotal || null,
       data.usageLimitPerCustomer || null,
-      data.categoryId || null,
       data.isActive ?? true ? 1 : 0,
       data.startsAt || null,
       data.expiresAt || null,
@@ -52,7 +51,7 @@ export async function updateCoupon(id, data) {
   await pool.query(
     `UPDATE coupons SET
        code = ?, type = ?, value = ?, min_order_value = ?, max_discount_amount = ?,
-       usage_limit_total = ?, usage_limit_per_customer = ?, category_id = ?, is_active = ?, starts_at = ?, expires_at = ?
+       usage_limit_total = ?, usage_limit_per_customer = ?, is_active = ?, starts_at = ?, expires_at = ?
      WHERE id = ?`,
     [
       data.code,
@@ -62,7 +61,6 @@ export async function updateCoupon(id, data) {
       data.maxDiscountAmount || null,
       data.usageLimitTotal || null,
       data.usageLimitPerCustomer || null,
-      data.categoryId || null,
       data.isActive ? 1 : 0,
       data.startsAt || null,
       data.expiresAt || null,

@@ -4,10 +4,9 @@ import { publicPathFor, renameUploadedFile } from '../../config/upload.js';
 import * as productService from '../../services/product.service.js';
 
 export const list = asyncHandler(async (req, res) => {
-  const { search, categoryId, sort, page = 1, pageSize = 20 } = req.query;
+  const { search, sort, page = 1, pageSize = 20 } = req.query;
   const { rows, meta } = await productService.listAdminProducts({
     search,
-    categoryId: categoryId ? Number(categoryId) : undefined,
     sort,
     page: Number(page),
     pageSize: Number(pageSize),

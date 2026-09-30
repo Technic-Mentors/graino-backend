@@ -1,7 +1,7 @@
 import { pool } from '../config/db.js';
 
 // Tables intentionally left untouched: _migrations (schema tracking), admins,
-// categories, coupons, settings, shipping_zones (store configuration, not test data).
+// coupons, settings, shipping_zones (store configuration, not test data).
 const TABLES_TO_WIPE = [
   'addresses',
   'banners',
@@ -38,7 +38,7 @@ async function run() {
       console.log(`Truncated ${table}`);
     }
     await connection.query('SET FOREIGN_KEY_CHECKS = 1');
-    console.log(`\nDone. Wiped ${TABLES_TO_WIPE.length} tables. Kept: admins, categories, coupons, settings, shipping_zones, _migrations.`);
+    console.log(`\nDone. Wiped ${TABLES_TO_WIPE.length} tables. Kept: admins, coupons, settings, shipping_zones, _migrations.`);
   } finally {
     connection.release();
     await pool.end();

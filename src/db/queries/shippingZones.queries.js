@@ -7,9 +7,11 @@ export async function listShippingZones({ activeOnly = false } = {}) {
 }
 
 export async function findShippingZoneByCity(city) {
+  // Trim + lowercase on both sides so "Lahore ", " lahore", "LAHORE" etc. all match
+  // the same configured zone instead of silently falling back to the default rate.
   const [rows] = await pool.query(
-    'SELECT * FROM shipping_zones WHERE city = ? AND is_active = 1 LIMIT 1',
-    [city],
+    'SELECT * FROM shipping_zones WHERE LOWER(TRIM(city)) = LOWER(TRIM(?)) AND is_active = 1 LIMIT 1',
+    [city || ''],
   );
   return rows[0] || null;
 }

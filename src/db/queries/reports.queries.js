@@ -52,24 +52,6 @@ export async function getTopProductsRange(start, end, limit, status) {
   return rows.map((row) => ({ ...row, revenue: Number(row.revenue) }));
 }
 
-export async function getTopCategoriesRange(start, end, limit, status) {
-  const { clause, param } = statusCondition(status);
-  const params = [start, end, ...(param ? [param] : []), limit];
-  const [rows] = await pool.query(
-    `SELECT c.id AS categoryId, c.name AS categoryName, SUM(oi.line_total) AS revenue
-     FROM order_items oi
-     JOIN orders o ON o.id = oi.order_id
-     JOIN products p ON p.id = oi.product_id
-     JOIN categories c ON c.id = p.category_id
-     WHERE o.created_at >= ? AND o.created_at <= ? AND ${clause}
-     GROUP BY c.id, c.name
-     ORDER BY revenue DESC
-     LIMIT ?`,
-    params,
-  );
-  return rows.map((row) => ({ ...row, revenue: Number(row.revenue) }));
-}
-
 export async function getOrdersForExport(start, end, status) {
   const conditions = ['o.created_at >= ?', 'o.created_at <= ?'];
   const params = [start, end];

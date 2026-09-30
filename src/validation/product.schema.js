@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 export const listProductsQuerySchema = z.object({
   query: z.object({
-    category: z.string().trim().optional(),
     search: z.string().trim().optional(),
     minPrice: z.coerce.number().nonnegative().optional(),
     maxPrice: z.coerce.number().nonnegative().optional(),
@@ -14,9 +13,7 @@ export const listProductsQuerySchema = z.object({
 });
 
 export const priceRangeQuerySchema = z.object({
-  query: z.object({
-    category: z.string().trim().optional(),
-  }),
+  query: z.object({}),
 });
 
 export const productSlugParamSchema = z.object({
@@ -38,7 +35,6 @@ const variantInput = z.object({
 
 export const createProductSchema = z.object({
   body: z.object({
-    categoryId: z.coerce.number().int().positive(),
     name: z.string().trim().min(2).max(200),
     description: z.string().trim().max(5000).optional().nullable(),
     careInstructions: z.string().trim().max(2000).optional().nullable(),
@@ -56,7 +52,6 @@ export const createProductSchema = z.object({
 export const updateProductSchema = z.object({
   params: z.object({ id: z.coerce.number().int().positive() }),
   body: z.object({
-    categoryId: z.coerce.number().int().positive(),
     name: z.string().trim().min(2).max(200),
     description: z.string().trim().max(5000).optional().nullable(),
     careInstructions: z.string().trim().max(2000).optional().nullable(),

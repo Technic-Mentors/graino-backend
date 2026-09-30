@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { authRouter } from './auth.routes.js';
-import { categoriesRouter } from './categories.routes.js';
 import { productsRouter } from './products.routes.js';
 import { ordersRouter } from './orders.routes.js';
 import { couponsRouter } from './coupons.routes.js';
@@ -18,7 +17,6 @@ import { contactMessagesRouter } from './contactMessages.routes.js';
 export const adminRouter = Router();
 
 adminRouter.use('/auth', authRouter);
-adminRouter.use('/categories', categoriesRouter);
 adminRouter.use('/products', productsRouter);
 adminRouter.use('/orders', ordersRouter);
 adminRouter.use('/coupons', couponsRouter);

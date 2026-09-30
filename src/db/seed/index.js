@@ -19,101 +19,31 @@ async function seedAdmin() {
   console.log(`Admin created: ${email} / ChangeMe123! (change this after first login)`);
 }
 
-async function seedCategories() {
-  const categories = [
-    { name: 'Championship Belts', slug: 'championship-belts', sortOrder: 1 },
-    { name: 'Weight Lifting Belts', slug: 'weight-lifting-belts', sortOrder: 2 },
-    { name: 'Equestrian Gear', slug: 'equestrian-gear', sortOrder: 3 },
-    { name: 'Buckles & Swivels', slug: 'buckles-swivels', sortOrder: 4 },
-  ];
-
-  for (const category of categories) {
-    const [existing] = await pool.query('SELECT id FROM categories WHERE slug = ?', [category.slug]);
-    if (existing.length > 0) continue;
-    await pool.query(
-      'INSERT INTO categories (parent_id, name, slug, sort_order, is_active) VALUES (NULL, ?, ?, ?, 1)',
-      [category.name, category.slug, category.sortOrder],
-    );
-    console.log(`Category created: ${category.name}`);
-  }
-}
-
 async function seedSampleProducts() {
-  const [categories] = await pool.query('SELECT id, slug FROM categories WHERE parent_id IS NULL');
-  const categoryIdBySlug = Object.fromEntries(categories.map((c) => [c.slug, c.id]));
-
   const products = [
     {
-      categorySlug: 'championship-belts',
-      name: 'Elite Championship Belt',
-      slug: 'elite-championship-belt',
-      description: 'A premium leather championship belt with a die-struck center plate, built for title bouts and display.',
-      fabric: 'Genuine Leather',
+      name: 'Graino Dough Maker',
+      slug: 'graino-dough-maker',
+      description: 'The Graino Dough Maker — a smarter, easier way to prepare consistent atta, maida, and qeema dough.',
+      fabric: 'Food-grade stainless steel',
       basePrice: 150,
-      compareAtPrice: 170,
-      isFeatured: 1,
-      variants: [
-        { size: '32in', color: 'Black', sku: 'CHB-32-BLK', stockQuantity: 8 },
-        { size: '34in', color: 'Black', sku: 'CHB-34-BLK', stockQuantity: 10 },
-        { size: '36in', color: 'Brown', sku: 'CHB-36-BRN', stockQuantity: 6 },
-      ],
-    },
-    {
-      categorySlug: 'weight-lifting-belts',
-      name: 'Powerlifting Training Belt',
-      slug: 'powerlifting-training-belt',
-      description: 'A rigid, single-prong leather belt for squat/deadlift bracing, built to keep its shape under load.',
-      fabric: 'Suede Leather',
-      basePrice: 65,
       compareAtPrice: null,
       isFeatured: 1,
       variants: [
-        { size: 'S', color: 'Black', sku: 'WLB-S-BLK', stockQuantity: 15 },
-        { size: 'M', color: 'Black', sku: 'WLB-M-BLK', stockQuantity: 22 },
-        { size: 'L', color: 'Black', sku: 'WLB-L-BLK', stockQuantity: 18 },
-      ],
-    },
-    {
-      categorySlug: 'equestrian-gear',
-      name: 'All-Purpose Saddle Pad',
-      slug: 'all-purpose-saddle-pad',
-      description: 'A cushioned, breathable saddle pad for everyday riding and schooling sessions.',
-      fabric: 'Cotton/Fleece',
-      basePrice: 55,
-      compareAtPrice: null,
-      isFeatured: 1,
-      variants: [
-        { size: 'Standard', color: 'Navy', sku: 'EQG-STD-NVY', stockQuantity: 14 },
-        { size: 'Standard', color: 'Black', sku: 'EQG-STD-BLK', stockQuantity: 11 },
-      ],
-    },
-    {
-      categorySlug: 'buckles-swivels',
-      name: 'Solid Brass Belt Buckle',
-      slug: 'solid-brass-belt-buckle',
-      description: 'A heavyweight solid brass buckle, interchangeable with any standard belt strap.',
-      fabric: 'Solid Brass',
-      basePrice: 25,
-      compareAtPrice: null,
-      isFeatured: 0,
-      variants: [
-        { size: 'One Size', color: 'Gold', sku: 'BKL-OS-GLD', stockQuantity: 25 },
-        { size: 'One Size', color: 'Nickel', sku: 'BKL-OS-NKL', stockQuantity: 20 },
+        { size: '3.5 kg', color: 'White', sku: 'AE-900A', stockQuantity: 10 },
+        { size: '5 kg', color: 'White', sku: 'AE-221', stockQuantity: 8 },
       ],
     },
   ];
 
   for (const product of products) {
-    const categoryId = categoryIdBySlug[product.categorySlug];
-    if (!categoryId) continue;
-
     const [existing] = await pool.query('SELECT id FROM products WHERE slug = ?', [product.slug]);
     if (existing.length > 0) continue;
 
     const [result] = await pool.query(
-      `INSERT INTO products (category_id, name, slug, description, fabric, base_price, compare_at_price, is_featured)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [categoryId, product.name, product.slug, product.description, product.fabric, product.basePrice, product.compareAtPrice, product.isFeatured],
+      `INSERT INTO products (name, slug, description, fabric, base_price, compare_at_price, is_featured)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [product.name, product.slug, product.description, product.fabric, product.basePrice, product.compareAtPrice, product.isFeatured],
     );
     const productId = result.insertId;
 
@@ -134,8 +64,10 @@ async function seedSettings() {
     store_email: 'info@mauniversal.com',
     store_phone: '+00 000 0000000',
     store_address: 'Address TBD',
+    // NOTE: default_shipping_rate is an unconfigured placeholder — set the real flat
+    // rate (and any per-city zones) via /admin/shipping before launch.
     default_shipping_rate: '8',
-    free_shipping_threshold: '75',
+    free_shipping_threshold: '5000',
     return_window_days: '7',
     return_policy_text: 'Items can be returned within 7 days of delivery if unused and in original packaging. Contact us to arrange a return.',
   };
@@ -152,7 +84,6 @@ async function seedSettings() {
 async function run() {
   try {
     await seedAdmin();
-    await seedCategories();
     await seedSampleProducts();
     await seedSettings();
     console.log('Seed complete.');

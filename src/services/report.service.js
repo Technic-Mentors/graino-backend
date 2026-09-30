@@ -16,14 +16,13 @@ function resolveRange(dateFrom, dateTo) {
 export async function getSalesReport({ dateFrom, dateTo, topLimit = 10, status }) {
   const { start, end } = resolveRange(dateFrom, dateTo);
 
-  const [summary, trend, topProducts, topCategories] = await Promise.all([
+  const [summary, trend, topProducts] = await Promise.all([
     reportsDb.getSalesSummary(start, end, status),
     reportsDb.getSalesTrendRange(start, end, status),
     reportsDb.getTopProductsRange(start, end, topLimit, status),
-    reportsDb.getTopCategoriesRange(start, end, topLimit, status),
   ]);
 
-  return { range: { start, end }, summary, trend, topProducts, topCategories };
+  return { range: { start, end }, summary, trend, topProducts };
 }
 
 function csvEscape(value) {

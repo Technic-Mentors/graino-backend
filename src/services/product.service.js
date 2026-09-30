@@ -6,7 +6,6 @@ import { deleteUploadedFile } from '../config/upload.js';
 import * as productsDb from '../db/queries/products.queries.js';
 import * as variantsDb from '../db/queries/productVariants.queries.js';
 import * as imagesDb from '../db/queries/productImages.queries.js';
-import { findCategoryBySlug } from '../db/queries/categories.queries.js';
 import { notifyBackInStock } from './notifyMe.service.js';
 
 async function ensureUniqueProductSlug(name, excludeId = null) {
@@ -32,17 +31,9 @@ async function attachDetails(product) {
   return { ...product, variants, images };
 }
 
-export async function listPublicProducts({ categorySlug, search, minPrice, maxPrice, sort, page, pageSize }) {
-  let categoryId;
-  if (categorySlug) {
-    const category = await findCategoryBySlug(categorySlug);
-    if (!category) return { rows: [], meta: buildPaginationMeta({ page, pageSize, total: 0 }) };
-    categoryId = category.id;
-  }
-
+export async function listPublicProducts({ search, minPrice, maxPrice, sort, page, pageSize }) {
   const offset = (page - 1) * pageSize;
   const { rows, total } = await productsDb.listProducts({
-    categoryId,
     search,
     minPrice,
     maxPrice,
@@ -55,14 +46,8 @@ export async function listPublicProducts({ categorySlug, search, minPrice, maxPr
   return { rows, meta: buildPaginationMeta({ page, pageSize, total }) };
 }
 
-export async function getPublicPriceRange(categorySlug) {
-  let categoryId;
-  if (categorySlug) {
-    const category = await findCategoryBySlug(categorySlug);
-    if (!category) return { minPrice: 0, maxPrice: 0 };
-    categoryId = category.id;
-  }
-  return productsDb.getPriceBounds({ categoryId, activeOnly: true });
+export async function getPublicPriceRange() {
+  return productsDb.getPriceBounds({ activeOnly: true });
 }
 
 export async function listFeaturedProducts(limit = 8) {
@@ -76,10 +61,9 @@ export async function getPublicProductBySlug(slug) {
   return attachDetails(product);
 }
 
-export async function listAdminProducts({ search, categoryId, sort, page, pageSize }) {
+export async function listAdminProducts({ search, sort, page, pageSize }) {
   const offset = (page - 1) * pageSize;
   const { rows, total } = await productsDb.listProducts({
-    categoryId,
     search,
     sort,
     activeOnly: false,
@@ -101,10 +85,9 @@ export async function createProduct({ variants, ...productData }) {
   return withTransaction(async (connection) => {
     const [result] = await connection.query(
       `INSERT INTO products
-         (category_id, name, slug, description, care_instructions, fabric, base_price, compare_at_price, is_featured, sort_order, meta_title, meta_description)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         (name, slug, description, care_instructions, fabric, base_price, compare_at_price, is_featured, sort_order, meta_title, meta_description)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        productData.categoryId,
         productData.name,
         slug,
         productData.description || null,

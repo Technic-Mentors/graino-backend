@@ -42,22 +42,6 @@ export async function getTopProducts(days, limit) {
   return rows.map((row) => ({ ...row, revenue: Number(row.revenue) }));
 }
 
-export async function getTopCategories(days, limit) {
-  const [rows] = await pool.query(
-    `SELECT c.id AS categoryId, c.name AS categoryName, SUM(oi.line_total) AS revenue
-     FROM order_items oi
-     JOIN orders o ON o.id = oi.order_id
-     JOIN products p ON p.id = oi.product_id
-     JOIN categories c ON c.id = p.category_id
-     WHERE o.${NOT_CANCELLED} AND o.created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
-     GROUP BY c.id, c.name
-     ORDER BY revenue DESC
-     LIMIT ?`,
-    [days, limit],
-  );
-  return rows.map((row) => ({ ...row, revenue: Number(row.revenue) }));
-}
-
 export async function countNewCustomersBetween(start, end) {
   const [rows] = await pool.query(
     'SELECT COUNT(*) AS count FROM customers WHERE created_at >= ? AND created_at < ?',

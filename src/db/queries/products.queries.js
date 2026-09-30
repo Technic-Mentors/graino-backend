@@ -1,7 +1,7 @@
 import { pool } from '../../config/db.js';
 
 const PRODUCT_LIST_SELECT = `
-  SELECT p.*, c.name AS category_name, c.slug AS category_slug,
+  SELECT p.*,
     (SELECT image_path FROM product_images pi WHERE pi.product_id = p.id
        ORDER BY is_primary DESC, sort_order ASC LIMIT 1) AS primary_image,
     (SELECT MIN(COALESCE(pv.price_override, p.base_price)) FROM product_variants pv
@@ -13,7 +13,6 @@ const PRODUCT_LIST_SELECT = `
     (SELECT COUNT(*) FROM reviews r
        WHERE r.product_id = p.id AND r.status = 'approved') AS rating_count
   FROM products p
-  JOIN categories c ON c.id = p.category_id
 `;
 
 const SORT_COLUMNS = {
@@ -23,16 +22,12 @@ const SORT_COLUMNS = {
   name_asc: 'p.name ASC',
 };
 
-function buildListFilters({ categoryId, search, minPrice, maxPrice, activeOnly, featuredOnly }) {
+function buildListFilters({ search, minPrice, maxPrice, activeOnly, featuredOnly }) {
   const conditions = [];
   const params = [];
 
   if (activeOnly) conditions.push('p.is_active = 1');
   if (featuredOnly) conditions.push('p.is_featured = 1');
-  if (categoryId) {
-    conditions.push('p.category_id = ?');
-    params.push(categoryId);
-  }
   if (search) {
     conditions.push('p.name LIKE ?');
     params.push(`%${search}%`);
@@ -53,7 +48,6 @@ function buildListFilters({ categoryId, search, minPrice, maxPrice, activeOnly, 
 }
 
 export async function listProducts({
-  categoryId,
   search,
   minPrice,
   maxPrice,
@@ -64,7 +58,6 @@ export async function listProducts({
   offset = 0,
 }) {
   const { conditions, params, havingConditions, havingParams } = buildListFilters({
-    categoryId,
     search,
     minPrice,
     maxPrice,
@@ -90,30 +83,22 @@ export async function listProducts({
              (SELECT MIN(COALESCE(pv.price_override, p.base_price)) FROM product_variants pv
                 WHERE pv.product_id = p.id) AS min_price
            FROM products p
-           JOIN categories c ON c.id = p.category_id
            ${whereClause}
            ${havingClause}
          ) AS filtered`,
         [...params, ...havingParams],
       )
-    : pool.query(
-        `SELECT COUNT(*) AS total FROM products p JOIN categories c ON c.id = p.category_id ${whereClause}`,
-        params,
-      );
+    : pool.query(`SELECT COUNT(*) AS total FROM products p ${whereClause}`, params);
 
   const [[rows], [countRows]] = await Promise.all([rowsQuery, countQuery]);
 
   return { rows, total: countRows[0].total };
 }
 
-export async function getPriceBounds({ categoryId, activeOnly = true } = {}) {
+export async function getPriceBounds({ activeOnly = true } = {}) {
   const conditions = [];
   const params = [];
   if (activeOnly) conditions.push('p.is_active = 1');
-  if (categoryId) {
-    conditions.push('p.category_id = ?');
-    params.push(categoryId);
-  }
   const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
   const [rows] = await pool.query(
@@ -135,26 +120,18 @@ export async function getPriceBounds({ categoryId, activeOnly = true } = {}) {
 export async function findProductBySlug(slug, { activeOnly = true } = {}) {
   const where = activeOnly ? 'AND p.is_active = 1' : '';
   const [rows] = await pool.query(
-    `SELECT p.*, c.name AS category_name, c.slug AS category_slug
-     FROM products p JOIN categories c ON c.id = p.category_id
-     WHERE p.slug = ? ${where} LIMIT 1`,
+    `SELECT p.* FROM products p WHERE p.slug = ? ${where} LIMIT 1`,
     [slug],
   );
   return rows[0] || null;
 }
 
 export async function findProductById(id) {
-  const [rows] = await pool.query(
-    `SELECT p.*, c.name AS category_name, c.slug AS category_slug
-     FROM products p JOIN categories c ON c.id = p.category_id
-     WHERE p.id = ? LIMIT 1`,
-    [id],
-  );
+  const [rows] = await pool.query('SELECT p.* FROM products p WHERE p.id = ? LIMIT 1', [id]);
   return rows[0] || null;
 }
 
 export async function createProduct({
-  categoryId,
   name,
   slug,
   description,
@@ -169,10 +146,9 @@ export async function createProduct({
 }) {
   const [result] = await pool.query(
     `INSERT INTO products
-       (category_id, name, slug, description, care_instructions, fabric, base_price, compare_at_price, is_featured, sort_order, meta_title, meta_description)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       (name, slug, description, care_instructions, fabric, base_price, compare_at_price, is_featured, sort_order, meta_title, meta_description)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
-      categoryId,
       name,
       slug,
       description || null,
@@ -190,7 +166,6 @@ export async function createProduct({
 }
 
 export async function updateProduct(id, {
-  categoryId,
   name,
   slug,
   description,
@@ -206,11 +181,10 @@ export async function updateProduct(id, {
 }) {
   await pool.query(
     `UPDATE products SET
-       category_id = ?, name = ?, slug = ?, description = ?, care_instructions = ?, fabric = ?,
+       name = ?, slug = ?, description = ?, care_instructions = ?, fabric = ?,
        base_price = ?, compare_at_price = ?, is_active = ?, is_featured = ?, sort_order = ?, meta_title = ?, meta_description = ?
      WHERE id = ?`,
     [
-      categoryId,
       name,
       slug,
       description || null,

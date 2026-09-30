@@ -2,7 +2,7 @@ import { sendEmail } from '../config/mailer.js';
 import { env } from '../config/env.js';
 import { BRAND_NAME } from '../config/brand.js';
 import * as customersDb from '../db/queries/customers.queries.js';
-import { renderLayout, renderButton, sectionTitle, money, formatDate } from './layout.js';
+import { renderLayout, renderButton, sectionTitle, money, formatDate, NAVY, GOLD } from './layout.js';
 
 // Gmail's plain SMTP transport (see config/mailer.js) has no queue or rate limiting of its
 // own, so a bulk announcement is sent in small batches with a pause between them to stay
@@ -55,7 +55,7 @@ export async function sendCouponLaunchEmail(customer, coupon) {
         <p>We've just launched a new coupon — use the code below at checkout to save on your next order.</p>
 
         <p style="margin: 20px 0; text-align: center;">
-          <span style="display:inline-block; border: 2px dashed #c2410c; border-radius: 6px; padding: 10px 24px; font-size: 20px; font-weight: bold; letter-spacing: 0.1em; color: #9a3412;">
+          <span style="display:inline-block; border: 2px dashed ${GOLD}; border-radius: 6px; padding: 10px 24px; font-size: 20px; font-weight: bold; letter-spacing: 0.1em; color: ${NAVY};">
             ${coupon.code}
           </span>
         </p>

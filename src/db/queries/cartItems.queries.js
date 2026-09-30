@@ -4,7 +4,7 @@ export async function listCartItems(customerId) {
   const [rows] = await pool.query(
     `SELECT ci.id AS cart_item_id, ci.quantity, pv.id AS variant_id, pv.size, pv.color, pv.sku,
        pv.stock_quantity, COALESCE(pv.price_override, p.base_price) AS unit_price,
-       p.id AS product_id, p.name AS product_name, p.slug AS product_slug, p.is_active, p.category_id,
+       p.id AS product_id, p.name AS product_name, p.slug AS product_slug, p.is_active,
        (SELECT image_path FROM product_images pi WHERE pi.product_id = p.id
           ORDER BY is_primary DESC, sort_order ASC LIMIT 1) AS primary_image
      FROM cart_items ci

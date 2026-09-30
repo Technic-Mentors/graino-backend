@@ -1,23 +1,25 @@
 import { BRAND_NAME } from '../config/brand.js';
 
-// Shared HTML email building blocks used by orderEmails.js and authEmails.js so
-// the brand shell, colors and copy only live in one place.
+// Shared HTML email building blocks used by orderEmails.js, authEmails.js,
+// couponEmails.js and notifyMeEmails.js so the brand shell, colors and copy
+// only live in one place.
 
-const ACCENT = '#c2410c';
-const ACCENT_DARK = '#9a3412';
+export const NAVY = '#172554'; // blue-950 — headings, buttons, section titles
+export const GOLD = '#ca8a04'; // gold-600 — accent line, coupon-code highlight
 const TEXT = '#1c1917';
 const TEXT_LIGHT = '#57534e';
 const BORDER = '#e7e5e4';
 const SURFACE = '#fafaf9';
 
-export const BRAND_CONTACT_LINE = `${BRAND_NAME} · Gondlanwala Rd, Gobandgarh, Gujranwala, 52250 · +92-310-7777899`;
+export const BRAND_CONTACT_LINE = `${BRAND_NAME} Dough Maker · Gondlanwala Rd, Gobandgarh, Gujranwala, 52250 · +92 3086256766`;
 
 export function renderLayout({ heading, preheader, bodyHtml }) {
   return `
     <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: ${TEXT}; background: #ffffff;">
       ${preheader ? `<span style="display:none;max-height:0;overflow:hidden;opacity:0;">${preheader}</span>` : ''}
-      <div style="padding: 24px 24px 16px; border-bottom: 2px solid ${ACCENT};">
-        <h1 style="margin: 0; font-size: 20px; color: ${ACCENT_DARK};">${BRAND_NAME}</h1>
+      <div style="height: 4px; background: ${GOLD};"></div>
+      <div style="padding: 24px 24px 16px; border-bottom: 2px solid ${NAVY};">
+        <h1 style="margin: 0; font-size: 20px; color: ${NAVY};">${BRAND_NAME} <span style="color:${GOLD};">Dough Maker</span></h1>
         ${heading ? `<p style="margin: 4px 0 0; font-size: 14px; color: ${TEXT_LIGHT};">${heading}</p>` : ''}
       </div>
       <div style="padding: 20px 24px;">
@@ -38,7 +40,7 @@ export function renderButton(href, label) {
   return `
     <p style="margin: 24px 0; text-align: center;">
       <a href="${href}"
-         style="display:inline-block;background:${ACCENT};color:#fff;padding:12px 28px;text-decoration:none;border-radius:4px;font-weight:bold;font-size:14px;">
+         style="display:inline-block;background:${NAVY};color:#fff;padding:12px 28px;text-decoration:none;border-radius:4px;font-weight:bold;font-size:14px;">
         ${label}
       </a>
     </p>
@@ -46,7 +48,7 @@ export function renderButton(href, label) {
 }
 
 export function sectionTitle(label) {
-  return `<p style="margin: 20px 0 8px; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; color: ${ACCENT_DARK};">${label}</p>`;
+  return `<p style="margin: 20px 0 8px; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; color: ${NAVY};">${label}</p>`;
 }
 
 export function renderAddressBlock(order) {

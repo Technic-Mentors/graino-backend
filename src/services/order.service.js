@@ -64,15 +64,10 @@ export async function placeOrder(customerId, { addressId, shipping, couponCode, 
 
   const subtotal = cartItems.reduce((sum, item) => sum + Number(item.unit_price) * item.quantity, 0);
 
-  const itemsByCategory = {};
-  for (const item of cartItems) {
-    itemsByCategory[item.category_id] = (itemsByCategory[item.category_id] || 0) + Number(item.unit_price) * item.quantity;
-  }
-
   let discountAmount = 0;
   let coupon = null;
   if (couponCode) {
-    const result = await previewDiscount({ code: couponCode, customerId, subtotal, itemsByCategory });
+    const result = await previewDiscount({ code: couponCode, customerId, subtotal });
     coupon = result.coupon;
     discountAmount = result.discountAmount;
   }

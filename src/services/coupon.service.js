@@ -54,7 +54,7 @@ export async function deleteCoupon(id) {
  * Validates a coupon against the current cart and returns the discount to apply.
  * Does not mutate anything — recording usage happens inside the order transaction.
  */
-export async function previewDiscount({ code, customerId, subtotal, itemsByCategory }) {
+export async function previewDiscount({ code, customerId, subtotal }) {
   const coupon = await couponsDb.findCouponByCode(code.trim().toUpperCase());
   if (!coupon || !coupon.is_active) throw new AppError('Invalid or inactive coupon code.', 400);
 
@@ -75,24 +75,20 @@ export async function previewDiscount({ code, customerId, subtotal, itemsByCateg
     }
   }
 
-  const eligibleSubtotal = coupon.category_id
-    ? (itemsByCategory[coupon.category_id] || 0)
-    : subtotal;
-
-  if (eligibleSubtotal <= 0) {
+  if (subtotal <= 0) {
     throw new AppError('This coupon does not apply to any items in your cart.', 400);
   }
-  if (coupon.min_order_value != null && eligibleSubtotal < Number(coupon.min_order_value)) {
+  if (coupon.min_order_value != null && subtotal < Number(coupon.min_order_value)) {
     throw new AppError(`This coupon requires a minimum order of $${coupon.min_order_value}.`, 400);
   }
 
   let discountAmount =
-    coupon.type === 'percentage' ? (eligibleSubtotal * Number(coupon.value)) / 100 : Number(coupon.value);
+    coupon.type === 'percentage' ? (subtotal * Number(coupon.value)) / 100 : Number(coupon.value);
 
   if (coupon.max_discount_amount != null) {
     discountAmount = Math.min(discountAmount, Number(coupon.max_discount_amount));
   }
-  discountAmount = Math.min(discountAmount, eligibleSubtotal);
+  discountAmount = Math.min(discountAmount, subtotal);
 
   return { coupon, discountAmount: Math.round(discountAmount * 100) / 100 };
 }
@@ -103,11 +99,7 @@ export async function previewDiscountForCustomerCart(customerId, code) {
   if (cartItems.length === 0) throw new AppError('Your cart is empty.', 400);
 
   const subtotal = cartItems.reduce((sum, item) => sum + Number(item.unit_price) * item.quantity, 0);
-  const itemsByCategory = {};
-  for (const item of cartItems) {
-    itemsByCategory[item.category_id] = (itemsByCategory[item.category_id] || 0) + Number(item.unit_price) * item.quantity;
-  }
 
-  const { coupon, discountAmount } = await previewDiscount({ code, customerId, subtotal, itemsByCategory });
+  const { coupon, discountAmount } = await previewDiscount({ code, customerId, subtotal });
   return { code: coupon.code, discountAmount, subtotal };
 }
