@@ -9,10 +9,17 @@ export const pool = mysql.createPool({
   database: env.db.database,
   waitForConnections: true,
   connectionLimit: 25,
-  dateStrings: false,             // must be false so timezone conversion runs
-  timezone: '+05:00',             // DB is UTC → convert to Pakistan time (PKT)
+  dateStrings: true,
+  timezone: '+05:00',
   enableKeepAlive: true,
   keepAliveInitialDelay: 10000,
+});
+
+// Force every new connection to use Pakistan time for NOW() / CURRENT_TIMESTAMP.
+// (Workaround for the VPS OS clock being 5 hours slow; safe for this app only —
+// other apps on the server are unaffected because this only sets the session TZ.)
+pool.on('connection', (conn) => {
+  conn.query("SET time_zone = '+05:00'");
 });
 
 const RETRYABLE_CODES = new Set([
@@ -23,9 +30,6 @@ const RETRYABLE_CODES = new Set([
   'EPIPE',
 ]);
 
-// Remote MySQL hosts often close idle pool connections server-side (short wait_timeout)
-// without the pool noticing until the next query fails. Retry once transparently on a
-// fresh connection instead of surfacing a transient error to the user.
 const originalQuery = pool.query.bind(pool);
 pool.query = async function queryWithRetry(...args) {
   try {
@@ -38,13 +42,10 @@ pool.query = async function queryWithRetry(...args) {
   }
 };
 
-/**
- * Runs `work` inside a transaction, committing on success and rolling back on error.
- * `work` receives a dedicated connection — use it for every query in the transaction.
- */
 export async function withTransaction(work) {
   const connection = await pool.getConnection();
   try {
+    await connection.query("SET time_zone = '+05:00'");
     await connection.beginTransaction();
     const result = await work(connection);
     await connection.commit();

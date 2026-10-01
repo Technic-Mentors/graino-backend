@@ -10,23 +10,6 @@ import { notFoundHandler, errorHandler } from './middleware/errorHandler.js';
 import { shopRouter } from './routes/shop/index.js';
 import { adminRouter } from './routes/admin/index.js';
 
-// Serialize every Date to JSON as Pakistan time "YYYY-MM-DD HH:mm:ss"
-// (DB stores UTC; the pool converts to PKT; this formats it as a clean string).
-Date.prototype.toJSON = function () {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Karachi',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false,
-  })
-    .format(this)
-    .replace(', ', ' ');
-};
-
 export const app = express();
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
