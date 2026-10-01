@@ -9,7 +9,8 @@ export const pool = mysql.createPool({
   database: env.db.database,
   waitForConnections: true,
   connectionLimit: 25,
-  dateStrings: true,
+  dateStrings: false,             // must be false so timezone conversion runs
+  timezone: '+05:00',             // DB is UTC → convert to Pakistan time (PKT)
   enableKeepAlive: true,
   keepAliveInitialDelay: 10000,
 });
